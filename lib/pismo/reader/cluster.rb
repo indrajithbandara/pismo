@@ -163,7 +163,7 @@ module Pismo
 
       # Removes all html tags and attributes from html
       def strip_tags(html)
-        strip(Sanitize.clean(html, :elements => [], :attributes => []))
+        strip(Sanitize.clean(html))
       end
       
     end  
