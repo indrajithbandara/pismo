@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<shoulda>, [">= 0"])
   s.add_development_dependency(%q<mocha>, [">= 0"])
   s.add_development_dependency(%q<rake>, [">= 0"])  
+  s.add_dependency(%q<open_uri_redirections>, [">= 0"])
   s.add_dependency(%q<awesome_print>, [">= 0"])
   s.add_dependency(%q<nokogiri>, [">= 0"])
   s.add_dependency(%q<sanitize>, [">= 0"])
