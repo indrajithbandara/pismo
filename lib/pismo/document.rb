@@ -35,7 +35,7 @@ module Pismo
       @url = handle if handle =~ /\Ahttp/i
 
       @html = if handle =~ /\Ahttp/i
-                open(handle, allow_redirections: :safe) { |f| f.read }
+                open(handle, allow_redirections: :all) { |f| f.read }
               elsif handle.is_a?(StringIO) || handle.is_a?(IO) || handle.is_a?(Tempfile)
                 handle.read
               else
