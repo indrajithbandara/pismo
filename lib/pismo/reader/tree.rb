@@ -149,7 +149,7 @@ module Pismo
         if @content_candidates.present? && @content_candidates[index].present?
           elm = @content_candidates[index].first
         else
-          elm = body
+          elm = 'body'
         end
         @doc.at(elm)
       end
