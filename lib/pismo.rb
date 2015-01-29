@@ -94,7 +94,7 @@ class Nokogiri::HTML::Document
           nil
         end
         Array(result).compact.each do |r|
-          results << Pismo.normalize_entities(r.strip)
+          results << r.strip #Pismo.normalize_entities(r.strip)
         end
       end
     end.compact
