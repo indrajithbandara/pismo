@@ -52,20 +52,18 @@ module Pismo
 
     def to_hash
       {
-        'titles'          => titles,
-        'title'           => title,
-        'og_title'        => og_title,
-        'html_title'      => html_title,
-        'authors'         => authors,
-        'descriptions'   => descriptions,
-        'ledes'         => ledes,
-        'sentences'        => sentences,
-        'images'       => images,
-        'videos'          => videos,
-        'tags'  =>tags,
+        'titles'       => titles,
+        'title'        => title,
+        'og_title'     => og_title,
+        'html_title'   => html_title,
+        'authors'      => authors,
+        'descriptions' => descriptions,
+        'ledes'        => ledes,
+        'sentences'    => sentences,
+        'tags'         => tags,
         'keywords'     => keywords,
-        'favicon'       => favicon,
-        'feeds'      => feeds
+        'favicon'      => favicon,
+        'feeds'        => feeds
       }
     end
 
