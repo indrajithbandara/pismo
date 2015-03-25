@@ -143,7 +143,7 @@ module Pismo
       def is_link_list?(st)
         if st =~ /<(?:ul|dl|ol)(.+?)<\/(?:ul|dl|ol)>/im
           listpart = $1
-          outside = st.gsub(/<(?:ul|dl)(.+?)<\/(?:ul|dl)>/imn, '').gsub(/<.+?>/mn, '').gsub(/\s+/, ' ')
+          outside = st.gsub(/<(?:ul|dl)(.+?)<\/(?:ul|dl)>/im, '').gsub(/<.+?>/m, '').gsub(/\s+/, ' ')
           list = listpart.split(/<li[^>]*>/)
           list.shift
           rate = evaluate_list(list)
@@ -156,7 +156,7 @@ module Pismo
         return 1 if list.length == 0
         hit = 0
         list.each do |line|
-          hit +=1 if line =~ /<a\s+href=(['"]?)([^"'\s]+)\1/imn
+          hit +=1 if line =~ /<a\s+href=(['"]?)([^"'\s]+)\1/im
         end
         return 9 * (1.0 * hit / list.length) ** 2 + 1
       end
