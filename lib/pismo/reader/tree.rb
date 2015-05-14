@@ -146,7 +146,12 @@ module Pismo
       end
 
       def content_at(index)
-        @doc.at(@content_candidates[index].first)
+        if @content_candidates.present? && @content_candidates[index].present?
+          elm = @content_candidates[index].first
+        else
+          elm = 'body'
+        end
+        @doc.at(elm)
       end
 
     end

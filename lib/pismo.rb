@@ -40,7 +40,7 @@ module Pismo
 
   def self.normalize_entities(text)
     @entities ||= HTMLEntities.new
-    normalize_unicode_characters @entities.decode(text)
+    normalize_unicode_characters @entities.decode(text.force_encoding("ISO-8859-1").encode("utf-8", replace: nil))
   end
 
   UNICODE_CONVERSIONS = {
@@ -95,7 +95,7 @@ class Nokogiri::HTML::Document
           nil
         end
         Array(result).compact.each do |r|
-          results << Pismo.normalize_entities(r.strip)
+          results << r.strip #Pismo.normalize_entities(r.strip)
         end
       end
     end.compact

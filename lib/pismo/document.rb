@@ -49,5 +49,23 @@ module Pismo
 
       @doc.match([*args], all)
     end
+
+    def to_hash
+      {
+        'titles'       => titles,
+        'title'        => title,
+        'og_title'     => og_title,
+        'html_title'   => html_title,
+        'authors'      => authors,
+        'descriptions' => descriptions,
+        'ledes'        => ledes,
+        'sentences'    => sentences,
+        'tags'         => tags,
+        'keywords'     => keywords,
+        'favicon'      => favicon,
+        'feeds'        => feeds
+      }
+    end
+
   end
 end
