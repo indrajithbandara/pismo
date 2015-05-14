@@ -245,7 +245,7 @@ module Pismo
       tags.map!(&:inner_text)
 
       # remove "#" from hashtag-like tags
-      tags.map! { |t| t.gsub(/^#/, '') }
+      tags.map! { |t| t.gsub(/^#/, '').squish }
 
       tags
     end
