@@ -38,6 +38,30 @@ module Pismo
       ['link[@rel="icon"]', lambda { |el| el.attr('href') }]
     ]
 
+    IMAGE_MATCHES = [
+      ['meta[@property="og:image"]', lambda { |el| el.attr('content') } ]
+    ]
+
+    SITENAME_MATCHES = [
+      ['meta[@property="og:site_name"]', lambda { |el| el.attr('content') } ]
+    ]
+
+    YOUTUBE_CHANNEL_URL_MATCHES = [
+      ['//span[@itemprop="author"]/link[@itemprop="url"]', lambda { |el| el.attr('href') }]
+    ]
+
+    YOUTUBE_CHANNEL_NAME_MATCHES = [
+      'a.g-hovercard'
+    ]
+
+    VINE_NAME_MATCHES = [
+      'p.username a'
+    ]
+
+    VINE_URL_MATCHES = [
+      ['p.username a', lambda { |el| "http://vine.co#{el.attr('href')}" }]
+    ]
+
     def titles
       #in order of likley accuracy: og:title, html_title, document matches
       @all_titles ||= [ og_title, html_title, @doc.match(TITLE_MATCHES) ].
@@ -63,6 +87,14 @@ module Pismo
         log "Error getting OG tag: #{$!}"
       end
       nil
+    end
+
+    # Returns the sitename (primitive)
+    def sitename
+      @sitename ||= begin
+        sitename = @doc.match(SITENAME_MATCHES).first
+        sitename
+      end
     end
 
     # HTML title
@@ -252,6 +284,153 @@ module Pismo
           url = URI.join(@url , url).to_s
         end
         url
+      end
+    end
+
+    # Returns URL to the site's specified lead image
+    def image
+      @image ||= begin
+        url = @doc.match(IMAGE_MATCHES).first
+        url
+      end
+    end
+
+    # Returns information specific to YouTube URLs
+    def youtube
+      @youtube ||= begin
+        youtube = {
+          name: @doc.match(YOUTUBE_CHANNEL_NAME_MATCHES).first,
+          url: @doc.match(YOUTUBE_CHANNEL_URL_MATCHES).first
+        }
+        youtube
+      end
+    end
+
+    # Returns information specific to Vine URLs
+    def vine
+      @vine ||= begin
+        vine = {
+          name: @doc.match(VINE_NAME_MATCHES).first,
+          url: @doc.match(VINE_URL_MATCHES).first
+        }
+        vine
+      end
+    end
+
+    # Parse and sanitize tweet
+    def tweet
+      @tweet ||= begin
+        frag = @doc.css('p.tweet-text').first
+
+        # Strip extraneous information
+        frag.search('.//@*').reject{|a|%w{class href}.include? a.name}.map(&:remove)
+        frag.search('.//span').map{|s|s.replace(s.content)}
+        frag.search('.//a').map{|s|s.inner_html = s.content}
+
+        # Remove attributes and expand URLs on @replies
+        replies = frag.search('.//*[contains(@class,"twitter-atreply")]')
+        replies.search('./@class').map{|r|r.value = 'username'}
+        replies.map{|r|r.attributes['href'].value = "http://twitter.com" + r.attributes['href']}
+
+        # Remove attributes and expand URLs on #hashtags
+        hashtags = frag.search('.//*[contains(@class,"twitter-hashtag")]')
+        hashtags.search('./@class').map{|h|h.value = 'hashtag'}
+        hashtags.map{|h|h.attributes['href'].value = "http://twitter.com" + h.attributes['href']}
+
+        # Remove attributes on remaining links
+        frag.search('.//a[not(@class="username") and not(@class="hashtag")]/@*').map{|a|a.remove unless a.name=='href'}
+
+        frag.inner_html
+      rescue
+        nil
+      end
+    end
+
+    def twitterLinkColor
+      @twitterLinkColor ||= begin
+        twitterLinkColor = @doc.search('style').first.content.match(/\.u-textUserColor\s+{\s+color:\s+(\S+)/m)[1] rescue nil
+        twitterLinkColor
+      rescue
+        nil
+      end
+    end
+
+    def twitterImage
+      @twitterImage ||= begin
+        twitterImage = @doc.search('//a[contains(@class,"media-thumbnail")]/*/img').attr('src').value
+        twitterImage
+      rescue
+        nil
+      end
+    end
+
+    # Returns information specific to Twitter URLs
+    def twitter
+      @twitter ||= begin
+        twitter = {
+          linkColor: twitterLinkColor,
+          tweet: tweet,
+          image: twitterImage,
+          handle: @doc.search('//div[contains(@class,"tweet")]/@data-screen-name').first.value,
+          name: @doc.search('//div[contains(@class,"tweet")]/@data-name').first.value,
+          avatar: @doc.search('//img[contains(@class,"avatar")]/@src').first.value
+        }
+      rescue
+        nil
+      end
+    end
+
+    def brittle_instagram
+      @brittle_instagram ||= begin
+        data = JSON.parse(@doc.search('script').reject{|s|s.attributes['src']}.last.content.gsub(/^window\._sharedData =/,'').gsub(';',''))['entry_data']['DesktopPPage'][0]['media']
+        brittleData = {
+          username: data['owner']['username'],
+          caption: data['caption']
+        }
+      rescue
+        nil
+      end
+    end
+
+    def livestream
+      return nil unless @url.match(/livestream\.com/)
+      @livestream ||= begin
+        livestream = JSON.parse(@doc.search('script').select{|s| s.content.match(/window\.config/)}.first.content.gsub(/^window\.config = /,'').gsub(/\;$/,''))
+      rescue
+        nil
+      end
+    end
+
+    def instagram
+      @instagram ||= begin
+        instagram = {
+          video: @doc.match('meta[@property="og:video"]').first,
+          brittle: brittle_instagram
+        }
+      rescue
+        nil
+      end
+    end
+
+    def ustream
+      @ustream ||= begin
+        ustream = {
+          title: @doc.match('meta[@property="og:title"]').first,
+          description: @doc.match('.description .moreInfo').first,
+          channel_name: @doc.match('.title a[data-content-type="channel"]').first,
+          channel_url: 'http://ustream.tv' + @doc.match([['.title a[data-content-type="channel"]',lambda{|el|el.attr('href')}]]).first
+        }
+      rescue
+        nil
+      end
+    end
+
+    def soundcloud
+      return nil unless Pismo::Configuration.options[:soundcloud_client_id] && @url.match(/soundcloud\.com/)
+      @souncloud ||= begin
+        JSON.parse(open("http://api.soundcloud.com/resolve.json?url=#{@url}&client_id=#{Pismo::Configuration.options[:soundcloud_client_id]}").read)
+      rescue
+        nil
       end
     end
 

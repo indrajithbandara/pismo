@@ -33,5 +33,7 @@ Gem::Specification.new do |s|
   s.add_dependency(%q<phrasie>, [">= 0.1.4"])
   s.add_dependency(%q<fastimage>, [">= 1"])
   s.add_dependency(%q<htmlentities>)
+  s.add_dependency(%q<sinatra>)
+  s.add_dependency(%q<json>)
 
 end
